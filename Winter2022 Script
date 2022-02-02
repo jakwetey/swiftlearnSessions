@@ -505,3 +505,197 @@ SELECT ROUND(SQRT(80), 1);
 SELECT SQRT(80);
 
 SELECT * FROM HR.EMPLOYEES
+
+
+---02/01/2022
+
+-- JOINS
+--INNER JOIN/ JOIN 
+------retrieves matching records from the left and the right table
+--LEFT JOIN/ LEFT OUTER JOIN 
+------retrieves all records from the left table and matching 
+-----records from the right table
+--RIGHT JOIN/ RIGHT OUTER JOIN
+------retrieves all records from the right table and matching 
+-----records from the left table
+---FULL JOIN/ FULL OUTER JOIN
+----- retrieves all records from both left and right tables.
+-----SELF JOIN 
+-----conceptual join that allows to join a table to itself like its another table leveraging aliases.
+---- CROSS JOIN 
+---- cartesian join. which multiplies x amount of rows in the left to y 
+---- amount of rows in the right table.
+
+-- SYNTAX
+--SELECT A.column1, B.coulmn2,...
+--FROM table1 AS A
+--JOIN table2 AS B
+--ON A.commomcolumn = B.commoncolumn
+
+--INNER JOIN
+-- retrieve information of employees born in or after 1990
+SELECT P.[FirstName],P.[LastName],E.[BirthDate]
+FROM [HumanResources].[Employee] AS E
+INNER JOIN [Person].[Person] AS P
+ON E.[BusinessEntityID] = P.[BusinessEntityID]
+WHERE DATEPART(YEAR, E.[BirthDate]) >= '1990'
+ORDER BY E.[BirthDate];
+
+--LEFT JOIN
+---retrieve all firstnames in persons table and what is common from employees
+SELECT P.[FirstName]
+FROM [Person].[Person] AS P
+LEFT JOIN [HumanResources].[Employee] AS E
+ON E.[BusinessEntityID] = P.[BusinessEntityID];
+
+--RIGHT JOIN
+SELECT P.[FirstName]
+FROM [Person].[Person] AS P
+RIGHT JOIN [HumanResources].[Employee] AS E
+ON E.[BusinessEntityID] = P.[BusinessEntityID];
+
+-- PULL EMPLOYEES BORN IN OR AFTER 1990 AND THEIR DEPARTMENTS
+SELECT P.[FirstName],P.[LastName],E.[BirthDate],D.[Name]
+FROM [Person].[Person] AS P
+JOIN [HumanResources].[Employee] AS E
+ON E.[BusinessEntityID] = P.[BusinessEntityID]
+JOIN [HumanResources].[EmployeeDepartmentHistory] AS DH
+ON E.[BusinessEntityID] = DH.[BusinessEntityID]
+JOIN [HumanResources].[Department] AS D
+ON D.[DepartmentID] = DH.[DepartmentID]
+WHERE  E.[BirthDate] > '12-31-1989'
+
+--SELF JOIN
+-- PULL EMPLOYEES AND THEIR MANAGERS
+SELECT CONCAT(E.FIRSTNAME,' ', E.LASTNAME) AS EMPLOYEE,
+		CONCAT(M.FIRSTNAME,' ', M.LASTNAME) AS MANAGER
+FROM HR.EMPLOYEES AS E
+LEFT JOIN HR.EMPLOYEES AS M
+ON E.MGRID = M.EMPID
+
+--CROSS JOIN 
+--DEVELOP TIMETABLE WITH 7 WORK DAYS AND 3 SHIFTS
+SELECT D.N AS DAY, S.N AS SHIFT
+FROM NUMS D
+CROSS JOIN NUMS AS S
+WHERE D.N <=7 AND S.N <= 3
+ORDER BY DAY
+
+-- SET OPERATORS
+--UNION 
+---used to combine the result set of 2 or more select statements 
+---without duplicates
+
+--UNION ALL
+--used to combine the result set of 2 or more select statements 
+---with duplicates
+
+--INTERSECT
+--combines only rows or records of 2  select statements that 
+--exists in both tables and is distinct
+
+--EXCEPT
+--used to perform set difference; so it will return rows/ records that
+--are in the first result data set but not in the second result data set
+
+-----TAKE AWAYS
+--the number of selected columns must be the same
+--their data types must be the same
+
+-- UNION
+-- PULL FRSTNAMES THAT ARE BOTH EMPLOYEES AND CUSTOMERS WITHOUT DUPLICATES
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON E.BUSINESSENTITYID = P.BUSINESSENTITYID
+
+UNION  ---936
+
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN SALES.CUSTOMER AS C
+ON C.PERSONID = P.BUSINESSENTITYID
+
+-- UNION ALL
+-- PULL FRSTNAMES THAT ARE BOTH EMPLOYEES AND CUSTOMERS WITH DUPLICATES
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON E.BUSINESSENTITYID = P.BUSINESSENTITYID
+
+UNION ALL -- 19409
+
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN SALES.CUSTOMER AS C
+ON C.PERSONID = P.BUSINESSENTITYID
+
+--INTERSECT
+--PULL ONLY FIRSTNAMES THAT ARE COMMON AMONG CUSTOMERS AND EMPLOYEES
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON E.BUSINESSENTITYID = P.BUSINESSENTITYID
+
+INTERSECT  -- 159
+
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN SALES.CUSTOMER AS C
+ON C.PERSONID = P.BUSINESSENTITYID
+
+--EXCEPT 
+-- PULL FIRSTNAMES THAT ARE ONLY EMPLOYEES AND NOT CUSTOMERS
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON E.BUSINESSENTITYID = P.BUSINESSENTITYID
+
+EXCEPT  --65
+
+SELECT P.FIRSTNAME
+FROM PERSON.PERSON AS P
+JOIN SALES.CUSTOMER AS C
+ON C.PERSONID = P.BUSINESSENTITYID
+
+
+--CASE STATEMENT
+-- CASE <SPECIFY COLUMN NAME(IF IT IS A SIMPLE CASE EXPRESSION)>
+--	WHEN <SPECIFY THE CONDITIONAL STATEMENT>
+--	THEN <SPECIFY OUTCOME IF CONDITION AT WHEN IS MET>
+-- ELSE <SPECIFY OUTCOME IF CONDITIN(S) ARE NOT MET>
+--END AS < DERIVED COLUMN NAME>
+
+--TYPES
+--SIMPLE CASE EXPRESSION
+--SEARCH CASE EXPRESSION
+
+-- SIMPLE CASE EXPRESSION
+-- SC = Store Contact, 
+--IN = Individual (retail) customer, SP = Sales person, 
+--EM = Employee (non-sales), VC = Vendor contact, GC = General contact
+-- RETRIEVE PERSON FIRST AND LAST NAME AND FULL DEFINTION FOR 
+-- THEIR PERSON TYPE
+SELECT FIRSTNAME, LASTNAME,PERSONTYPE,
+	CASE PERSONTYPE
+		WHEN 'SC' THEN 'STORE CONTACT'
+		WHEN 'IN' THEN 'INDIVIDUAL CUSTOMER'
+		WHEN 'EM' THEN 'EMPLOYEE'
+		WHEN 'SP' THEN 'SALES PERSON'
+		WHEN 'VC' THEN 'VENDOR CONTACT'
+		ELSE 'GENERAL CONTACT'
+	END AS PERSONTYPEDESCRIPTION
+FROM PERSON.PERSON.
+
+--SEARCH CASE EXPRESSION
+--CATEGORIZE OUR PRODUCTS BY THEIR UNITPRICE
+-- IF UNIOTPRICE LESS THAN 20 THEN LOW CATEGORY
+--IF UNITPRICE IS LESS 40 THEN MEDIUM CATEGORY
+--IF UNITPRICE IS MORE THAN 40 THEN HIGH
+SELECT PRODUCTNAME, UNITPRICE,
+		CASE 
+			WHEN UNITPRICE < 20 THEN 'LOW'
+			WHEN UNITPRICE < 40 THEN 'MEDIUM'
+			ELSE 'HIGH'
+		END AS PRICECATEGORY
+FROM PRODUCTION.PRODUCTS;
