@@ -699,3 +699,284 @@ SELECT PRODUCTNAME, UNITPRICE,
 			ELSE 'HIGH'
 		END AS PRICECATEGORY
 FROM PRODUCTION.PRODUCTS;
+
+---02/03/2022
+---Subquery
+--syntax
+Select column(s)
+From Tablename
+Where column operator(Exists, = <> or =!, >) (Select column 
+                                              From Tablename)
+Having agg_column operator(Exists, = <> or =!, >) (Select column 
+                                              From Tablename)
+
+---Example;
+Select * From Production.Products;
+
+----Retrieve the product info for the product with the max unitprice;
+--Self-contained/indepedent subquery;
+---incorrect attempt by the novice;
+Select productid, productname, supplierid, categoryid,
+       sum(unitprice) as maxunitprice, discontinued
+From Production.Products
+Group by productid, productname, supplierid, categoryid,discontinued
+Order by maxunitprice Desc;
+
+--right attempt
+Select productid, productname, supplierid, categoryid,
+       unitprice as maxunitprice, discontinued
+From Production.Products
+Where unitprice = (Select max(unitprice)
+                   From Production.Products)
+
+---correlated subquery;
+----Retrieve the product info for the product with the max unitprice
+---within each category of product;
+
+---to see the actual data for the categories
+Select productid, productname, supplierid, categoryid,
+       unitprice, discontinued
+From Production.Products
+Order by 4,5 
+
+---right approach;
+Select productid, productname, supplierid, categoryid,
+       unitprice as maxunitprice, discontinued
+From Production.Products as a
+Where unitprice = (Select max(unitprice)
+                   From Production.Products as b
+				   Where a.categoryid = b.categoryid)
+Order by 4;
+
+----Retrieve the product info for the product with the 4th max unitprice
+---within each category of product;
+Select productid, productname, supplierid, categoryid,
+       unitprice as maxunitprice, discontinued
+From Production.Products as a
+Where unitprice = (Select max(unitprice)
+                   From Production.Products as b
+				   Where a.categoryid = b.categoryid)
+Order by 5 Desc
+
+----Table Expressions
+--Types;
+--1. Derived table;
+--2. Common table expression (CTE);
+--3. Views;
+--4. Inline table-valued function
+
+---Derived table;
+--Select column(s)
+--From (Select column(s)
+--      From Table(s) ) T
+
+---Windowing functions/analytic function
+--Types
+--1. Rank() ---skips the ranking order when there is/are ties over a partition.
+--2. Dense_Rank() ---orders sequentially even when there is/are ties over a partition.
+--3. Row_Number() ---gives a sequential row numbering over a partition
+--4. Ntile() ---gives the percentile over a partition
+
+---Example:
+--colum Rank() Dense_Rank() Row_Number() 
+   20    1         1           1
+   23    2         2           2
+   24    3         3           3
+   24    3         3           4
+   24    3         3           5
+   25    6         4           6
+   25    6         4           7 
+   26    8         5           8
+
+--Problem of evening;
+----Retrieve the product info for the product with the 4th max unitprice
+---within each category of product;
+Select productid, productname, supplierid, categoryid,
+       max4thunitprice, discontinued
+From (Select productid, productname, supplierid, categoryid,
+       unitprice as max4thunitprice, discontinued, 
+	   Dense_Rank() OVER (Partition by categoryid order by unitprice desc) as ranked
+      From Production.Products) AS T
+Where ranked = 4;
+
+02/03/2022
+---CTE;
+---Syntax;
+--WITH ctename
+--AS
+--(Select statement),
+ --ctename1
+-- AS
+--  (Select statement1)
+--Select from ctename
+ -- Join ctename1
+
+ ----Retrieve the product info for the product with the 5th and 6th max unitprice
+---within each category of product;
+
+WITH maxitems
+AS
+(Select productid, productname, supplierid, categoryid,
+       unitprice as max4thunitprice, discontinued, 
+	   Dense_Rank() OVER (Partition by categoryid order by unitprice desc) as ranked
+      From Production.Products)
+Select productid, productname, supplierid, categoryid,
+       max4thunitprice, discontinued
+From maxitems
+Where ranked IN (5,6)
+
+---create a report to pull product for product that has the same sell date as the end date;
+---productid, Name, productnumber of selldate product, productid, Name, productnumber 
+---of enddate product;
+WITH sellstartdate
+AS
+(Select productid, Name, productnumber, sellstartdate
+ From AdventureWorks.Production.Product),
+sellenddate
+AS
+ (Select productid, Name, productnumber, sellenddate
+ From AdventureWorks.Production.Product)
+Select a.productid as startprodid, a.Name as startname, a.productnumber as startprodnumbder
+       ,a.sellstartdate, b.productid as endprodid, b.Name as endname, 
+	    b.productnumber as endprodnumber, b.sellenddate
+From sellstartdate as a
+Join sellenddate as b
+on a.SellStartDate =b.SellEndDate;
+
+---View
+---Syntax
+---CREATE view viewname
+---AS
+---Select statement
+----Create a reuseable report view that will produce productid, productname,
+----productnumber together with the product categoryid, category name and 
+----the modified date on the category;
+
+CREATE View vw_ProdCategory
+AS
+Select a.[ProductID],a.[Name] as prodname,a.[ProductNumber],
+       b.[ProductCategoryID],b.[Name] as categoryname,b.[ModifiedDate]
+From [Production].[Product] As a
+Join [Production].[ProductSubcategory] as s
+ ON a.[ProductSubcategoryID] = s.ProductSubcategoryID
+Join [Production].[ProductCategory] As b
+ ON s.ProductCategoryID = b.ProductCategoryID
+
+ Select * from vw_ProdCategory
+ Where categoryname = 'Components';
+
+---Inline table valued function.
+---scalar function
+---Stored procedure
+---IF ELSE construct
+---WHILE loop
+---Cursors
+
+----02/07/2022
+---Inline table-valued function
+--CREATE function fncname(@name)
+-- RETURNS TABLE
+--  AS
+--    RETURN
+--	 (sql statement)
+
+CREATE function fn_ProdCategory(@categoryname NVARCHAR(20))
+ RETURNS TABLE
+  AS
+   RETURN
+     Select a.[ProductID],a.[Name] as prodname,a.[ProductNumber],
+       b.[ProductCategoryID],b.[Name] as categoryname,b.[ModifiedDate]
+      From [Production].[Product] As a
+      Join [Production].[ProductSubcategory] as s
+      ON a.[ProductSubcategoryID] = s.ProductSubcategoryID
+      Join [Production].[ProductCategory] As b
+      ON s.ProductCategoryID = b.ProductCategoryID
+	  WHERE b.Name = @categoryname
+
+	 
+	 Select * from dbo.fn_ProdCategory('accessories')
+
+Select * from [Production].[Product]
+
+Select [ProductID],
+       [Name],
+       [ProductNumber],
+       [MakeFlag],
+       [StandardCost],
+       [ListPrice],
+       [ListPrice] - [StandardCost] as Profit
+From [Production].[Product]
+
+---User-Defined Scalar function
+--Syntax
+--CREATE FUNCTION fncname(@parametername datatype)
+-- RETURNS Datatype
+--  AS
+--   BEGIN
+--     RETURN (logic/statement)
+--   END 
+
+ CREATE FUNCTION Profit(@Listprice FLOAT, @cost FLOAT)
+  RETURNS FLOAT
+   AS
+    BEGIN
+	   RETURN (@Listprice - @cost)
+	END
+
+Select [ProductID],
+       [Name],
+       [ProductNumber],
+       [MakeFlag],
+       [StandardCost],
+       [ListPrice],
+      [dbo].[Profit](60,40) as Profit
+From [Production].[Product]
+
+----Stored Procedure
+
+--cache
+
+---Syntax
+--CREATE Procedure procname (@parameter datatype --optional)
+-- AS
+--  BEGIN
+--   Statement(s)
+--  END
+
+CREATE Procedure sp_Productlist
+AS 
+ BEGIN
+  SELECT Name as productName,
+       Listprice
+  From Production.Product
+  Order by 1
+ END
+
+---calling proc
+EXEC sp_Productlist
+
+---Modifying Proc to accept input parameter;
+ALTER Proc sp_Productlist (@minprice FLOAT)
+ AS
+  BEGIN
+   SELECT Name as productName,
+       Listprice
+  From Production.Product
+  WHERE Listprice >= @minprice
+  Order by 1
+  END
+
+  EXEC sp_Productlist 3000
+
+  ---Modifying Proc to accept multiple input parameter;
+ALTER Proc sp_Productlist (@minprice FLOAT, @maxprice FLOAT)
+ AS
+  BEGIN
+   SELECT Name as productName,
+       Listprice
+  From Production.Product
+  WHERE Listprice between @minprice and @maxprice
+  Order by 1
+  END
+
+EXEC sp_Productlist 2000,3200
