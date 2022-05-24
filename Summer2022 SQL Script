@@ -743,12 +743,155 @@ EXCEPT
 SELECT BUSINESSENTITYID FROM PERSON.PERSON
 
 
+---05/23/2022
+--CASE EXPRESSIONS
 
+--SYNTAX
+--CASE <specify the column_name>(if simple case expression)
+	--WHEN <specify the conditional statement>
+	--THEN <specify output if the condition is met>....
+	--ELSE <specify output if none of the condition(s) is met>
+--END AS <derived column>
 
+--SEARCH FORM
+--unitprice less than 20 then categorize as low
+--unitprice between 20 and 50 then categorize as medium
+--unit price is above 50 then categorize as high
+select productid, productname, unitprice,
+		case 
+			when unitprice < 20 then 'low'
+			when unitprice < 50 then 'medium'
+			when unitprice >= 50 then 'high'
+			else 'unknown'
+		end as pricecategory
+from Production.Products;
 
+--SIMPLE FORM
+SELECT CASE D.N 
+			WHEN 1 THEN 'SUNDAY'
+			WHEN 2 THEN 'MONDAY'
+			WHEN 3 THEN 'TUESDAY'
+			WHEN 4 THEN 'WEDNESDAY'
+			WHEN 5 THEN 'THURSDAY'
+			WHEN 6 THEN 'FRIDAY'
+			ELSE 'SATURDAY'
+		END AS DOFWEEK,
+		CASE S.N 
+			WHEN 1 THEN 'MORNING SHIFT'
+			WHEN 2 THEN 'AFTERNOON SHIFT'
+			ELSE 'OVERNIGHT SHIFT'
+		END AS SHIFTOFDAY
+FROM NUMS AS D
+CROSS JOIN NUMS AS S
+WHERE D.N <=7 AND S.N <=3
+ORDER BY D.N;
 
+----SUBQUERIES
+--SELF CONTAINED SUBQUERY
+------ the evaluation dpes not have any dependency on the outer query
 
+--CORRELATED SUBQUERY
+------ the evaluation depends on the outer query
 
+---SYNTAX
+--select column1, column2, column3.....
+--from tablename
+--where columnname (in. =, >, <>) (select column	
+--								 from tablename)
+--having aggregated_columnname (in. =, >, <>) (select column	
+--								 from tablename)
+
+--CORRELATED SUBQUERY
+---retrieve products with minimum unitprice per category
+select categoryid, productname, unitprice,
+       case 
+		   when discontinued = 1 then 'In Production'
+		   else 'Not in Production'
+	   end as ProductionStatus
+from production.products as A
+where unitprice = (select min(unitprice)
+					from production.products AS B
+					where A.categoryid = B.categoryid);
+					
+---SELF CONTAINED SUBQUERY
+--retrieve product info for product with the max unitprice
+select productid, productname, supplierid, categoryid, unitprice
+from production.Products
+where unitprice = (select max(unitprice)
+					from Production.Products);
+
+---TABLE EXPRESSIONS
+-- DERIVED TABLE
+--COMMON TABLE EXPRESSION(CTE)
+--VIEWS
+-- INLINE TABLE-VALUED FUNCTION
+
+--DERIVED TABLE
+--WINDOWING/ ANALYTICAL FUNCTIONS
+--1. ROW_NUMBER -- gives a sequential row numbering over a partition
+--2. RANK() -- skips ranking order when there is a tie over a partition
+--3. DENSE_RANK() -- orders sequentially even when there is a tie over partition
+--4. NTILE()-- gives the percentile over a partition
+
+-- how rankings work
+--column	Rank()	Dense_rank()	row_number()
+	10		1		1				1
+	11		2		2				2
+	12		3		3				3
+	14		3		3				4
+	15		5		4				5
+	16		5		4				6
+	17		7		5				7
+
+--DERIVED TABLE SYNTAX
+--SELECT COLUMN(S)
+--FROM (SELECT COLUMN(S)	
+--	  FROM TABLENAME) AS A
+
+-- retrieve the least 2 products per category based on unitprice
+select productname , unitprice, categoryid
+from(select productname , unitprice, categoryid,
+	row_number() over(partition by categoryid order by unitprice) as ranking
+	from production.products) as T
+where ranking in (1,2);
+
+----CTE SYNTAX
+--WITH <CTE_NAME>
+--AS 
+--(
+--INNER QUERY
+--)
+--OUTER QUERY
+
+-- retrieve the least 2 products per category based on unitprice
+with cte
+as 
+(
+	select productname , unitprice, categoryid,
+	row_number() over(partition by categoryid order by unitprice) as ranking
+	from production.products
+)
+
+select productname , unitprice, categoryid
+from cte
+where ranking in (1,2);
+
+---VIEWS
+---A virtual table of a select query
+--SYNTAX
+--CREATE VIEW <viewname>
+--AS
+--<select_query>
+
+--transforming query of the day into a view
+CREATE VIEW SAMPLEVIEW
+AS
+select productname , unitprice, categoryid,
+	row_number() over(partition by categoryid order by unitprice) as ranking
+	from production.products;
+
+SELECT * FROM SAMPLEVIEW
+WHERE RANKING IN (1,2);
 
 
 
