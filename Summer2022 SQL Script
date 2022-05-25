@@ -893,7 +893,93 @@ select productname , unitprice, categoryid,
 SELECT * FROM SAMPLEVIEW
 WHERE RANKING IN (1,2);
 
+-----05/24/2022
+---INLINE TABLE-VALUED FUNCTION
+CREATE VIEW SAMPLEVIEW
+AS
+select productname , unitprice, categoryid,
+	row_number() over(partition by categoryid order by unitprice) as ranking
+	from production.products;
+--SELECT * FROM SAMPLEVIEW
+--WHERE RANKING IN (1,2);
 
+CREATE function fn_top_prod_unitprice(@rank1 INT,@rank2 INT)
+RETURNS TABLE
+AS
+ RETURN
+  Select * From (select productname , unitprice, categoryid,
+	             row_number() over(partition by categoryid order by unitprice ) as ranking
+	             from production.products) as T
+  where ranking IN (@rank1,@rank2) 
+
+Select * From dbo.fn_top_prod_unitprice(5,6)
+
+---USER-DEFINED SCALAR FUNCTION
+--SYNTAX
+------------------------------------------------------
+--CREATE FUNCTION funcName(defined_input_value(s))
+--RETURNS INT/MONEY/VARCHAR(N)/FLOAT/DATE
+--AS
+-- BEGIN
+---RETURN (logic or calculation)
+-- END
+
+CREATE FUNCTION fn_Profit(@listprice MONEY, @cost MONEY)
+RETURNS INT
+  BEGIN
+   RETURN ( @listprice - @cost)
+  END
+
+select dbo.fn_Profit(40, 15);
+
+select [ProductID], [Name], [ProductNumber], [Class], 
+       dbo.fn_Profit(listprice, Standardcost) as Profit 
+from [Production].[Product]
+
+Select a.Name,Productname
+From AdventureWorks.Production.Product as a
+Join TSQL2012.Production.Products as b
+On a.[ProductID] = b.productid
+
+-----STORED PROCEDURE
+--CREATE PROC procname (@name1 Datatype)
+--AS
+-- BEGIN
+-- sql statement(s)
+-- END
+
+----create a report to compare side by side customers current and previous orders is it exists.
+ALTER PROC pr_year_after_year_custorders (@year INT)
+AS
+WITH curr
+AS
+(Select a.custid, a.companyname as customer, a.[contactname],
+       b.[freight] as current_orderAmt, CAST(orderdate AS DATE) as curorderdate
+From [Sales].[Customers] as a
+Join [Sales].[Orders] as b
+ ON a.custid =b.custid
+ Where YEAR(CAST([orderdate] AS DATE)) = 
+ (Select distinct YEAR(CAST(orderdate AS DATE)) from [Sales].[Orders]
+   WHERE YEAR(CAST(orderdate AS DATE)) = @year)
+ ),
+ prev
+ AS
+ (Select a.custid, a.companyname as customer, a.[contactname],
+ b.[freight] as previous_orderAmt, CAST(orderdate AS DATE) as prevorderdate
+From [Sales].[Customers] as a
+Join [Sales].[Orders] as b
+ ON a.custid =b.custid
+ Where YEAR(CAST([orderdate] AS DATE)) = 
+ (Select distinct YEAR(CAST(orderdate AS DATE)) from [Sales].[Orders]
+   WHERE YEAR(CAST(orderdate AS DATE)) = @year-1)
+ )
+ Select c.customer,c.contactname,current_orderAmt,previous_orderAmt
+ From curr as c
+ Join prev as p
+ ON c.custid = p.custid;
+
+
+ EXEC pr_year_after_year_custorders 2007
 
 
 
