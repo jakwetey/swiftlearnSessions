@@ -3,8 +3,7 @@
 -- CREATE -- create databases/ tables/ schemas
 ---ALTER -- modify an existing table
 ---DROP --- remove or delete an entire table or constraint
----TRUNCATE -- removes all the records from a table but maintains the 
-			-- structure.
+---TRUNCATE -- removes all the records from a table but maintains the structure.
 
 ---SYNTAX
 -- CREATE DATABASE DATABASE_NAME;
