@@ -465,3 +465,177 @@ FROM SALES.CUSTOMERS;
 SELECT LEFT(EMAILADDRESS, CHARINDEX('@', EMAILADDRESS)-1)
 		, EMAILADDRESS
 FROM [Person].[EmailAddress]
+
+
+---09/14/2022----
+--MATH FUNCTIONS
+-- ABS() -- RETURNS THE  ABSOLUTE VALUE  OF A NUMBER
+--FLOOR() -- RETRUNS THE LARGEST INTEGER THAT IS <= A GIVEN DECIMAL VALUE
+--CEILING() -- RETRUNS THE SMALLEST INTEGER THAT IS >= A GIVEN DECIMAL VALUE
+--ROUND() -- USED TO ROUND A VALUE TO THE NEAREST WHOLE NUMBER
+--POWER() -- USED TO FIND THE POWER OF A GIVEN NUMBER
+--SQRT() -- USED TO FOND THE SQUARE ROOT OF A GIVEN NUMBER.
+
+---ABS()
+DECLARE @NUM INT = -10
+SELECT @NUM AS VAL1, ABS(@NUM ) AS VAL2
+
+--FLOOR() 
+DECLARE @NUM FLOAT = 75.556
+SELECT @NUM AS VAL1, FLOOR(@NUM) AS VAL2;
+
+---CEILING()
+DECLARE @NUM FLOAT = 52.956
+SELECT @NUM AS VAL1, CEILING(@NUM) AS VAL2;
+
+--ROUND
+DECLARE @NUM FLOAT = 52.95623
+SELECT @NUM AS VAL1, ROUND(@NUM,2) AS VAL2;
+
+--POWER
+SELECT POWER(9,8) PWR
+
+--SQRT
+SELECT SQRT(64) SQROOT;
+
+---DATE FUNCTIONS
+-- DATEDIFF()
+-- HOW MANY DAYS SINCE 911
+SELECT DATEDIFF(DAY, '09/11/2001', GETDATE()) NUMOFDAYS;
+
+-- DATEADD() 
+--WHAT WILL THE DATE BE 100 DAYS FROM TODAY
+SELECT DATEADD(DAY, 100, GETDATE()) 
+
+-- GETDATE() 
+SELECT GETDATE()
+
+-- DATEPART() 
+--EXTRACT DAY PART OF TODAYS DATE
+SELECT DATEPART(DAY, GETDATE())
+
+-- DATENAME()
+-- FIND THE WEEKDAY FOR TODAYS DATE
+SELECT DATENAME(WEEKDAY, GETDATE())
+
+SELECT DATENAME(WEEKDAY, '05/17/1997')
+
+--CURRENT_TIMESTAMP
+SELECT CURRENT_TIMESTAMP
+
+
+--Table 1 Query:
+Create Table EmployeeDemographics 
+(EmployeeID int, 
+FirstName varchar(50), 
+LastName varchar(50), 
+Age int, 
+Gender varchar(50)
+)
+
+--Table 2 Query:
+Create Table EmployeeSalary 
+(EmployeeID int, 
+JobTitle varchar(50), 
+Salary int
+)
+
+
+---TABLES USED IN JOIN SCENERIOS
+--Table 1 Insert:
+Insert into EmployeeDemographics VALUES
+(1001, 'Jim', 'Halpert', 30, 'Male'),
+(1002, 'Pam', 'Beasley', 30, 'Female'),
+(1003, 'Dwight', 'Schrute', 29, 'Male'),
+(1004, 'Angela', 'Martin', 31, 'Female'),
+(1005, 'Toby', 'Flenderson', 32, 'Male'),
+(1006, 'Michael', 'Scott', 35, 'Male'),
+(1007, 'Meredith', 'Palmer', 32, 'Female'),
+(1008, 'Stanley', 'Hudson', 38, 'Male'),
+(1009, 'Kevin', 'Malone', 31, 'Male'),
+(NULL, 'Joe', 'Hallow', 20, NULL),
+(NULL, 'Timmy', 'Toms', NULL, NULL),
+(NULL, 'Gigi', 'Buffon', 34, 'Male');
+
+
+--Table 2 Insert:
+Insert Into EmployeeSalary VALUES
+(1001, 'Salesman', 45000),
+(1002, 'Receptionist', 36000),
+(1003, 'Salesman', 63000),
+(1004, 'Accountant', 47000),
+(1005, 'HR', 50000),
+(1006, 'Regional Manager', 65000),
+(1007, 'Supplier Relations', 41000),
+(1008, 'Salesman', 48000),
+(1009, 'Accountant', 42000),
+(NULL, NULL, 49000),
+(NULL, 'Receptionist', 55000);
+
+
+----- JOINS-----
+--JOINS ARE USED TO RETRIEVE DATA FROM TWO OR MORE TABLES BASED ON A LOGICAL
+--RELATIONSHIP BETWEEN THE TABLES
+
+--INNER JOIN/ JOIN 
+------retrieves matching records from the left and the right table
+--LEFT JOIN/ LEFT OUTER JOIN 
+------retrieves all records from the left table and matching 
+-----records from the right table
+--RIGHT JOIN/ RIGHT OUTER JOIN
+------retrieves all records from the right table and matching 
+-----records from the left table
+---FULL JOIN/ FULL OUTER JOIN
+----- retrieves all records from both left and right tables.
+-----SELF JOIN 
+-----conceptual join that allows to join a table to itself like its another table leveraging aliases.
+---- CROSS JOIN 
+---- cartesian join. which multiplies x amount of rows in the left to y 
+---- amount of rows in the right table.
+
+-- SYNTAX
+--SELECT A.coumn1, B.column2
+--FROM TABLE1 AS A
+--JOIN TABLE2 AS B
+--ON A.COMMONCOLUMN = B.COMMONCOLUMN;
+
+--JOIN
+SELECT * 
+FROM EMPLOYEEDEMOGRAPHICS AS D
+JOIN EMPLOYEESALARY AS S
+ON D.EMPLOYEEID = S.EMPLOYEEID;
+
+--- LEFT JOIN
+SELECT * 
+FROM EMPLOYEEDEMOGRAPHICS AS D
+LEFT JOIN EMPLOYEESALARY AS S
+ON D.EMPLOYEEID = S.EMPLOYEEID;
+
+--RIGHT JOIN
+SELECT * 
+FROM EMPLOYEEDEMOGRAPHICS AS D
+RIGHT JOIN EMPLOYEESALARY AS S
+ON D.EMPLOYEEID = S.EMPLOYEEID;
+
+--FULL JOIN
+SELECT * 
+FROM EMPLOYEEDEMOGRAPHICS AS D
+FULL JOIN EMPLOYEESALARY AS S
+ON D.EMPLOYEEID = S.EMPLOYEEID;
+
+--- RETRIEVE INFORMATION OF EMPLOYEES BORN AFTER 1990
+SELECT P.BUSINESSENTITYID,P.FIRSTNAME, P.LASTNAME, E.JOBTITLE, E.BIRTHDATE
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON P.BUSINESSENTITYID = E.BUSINESSENTITYID
+WHERE YEAR(E.BIRTHDATE) > '1990'
+
+SELECT P.BUSINESSENTITYID,P.FIRSTNAME, P.LASTNAME, E.JOBTITLE, E.BIRTHDATE
+FROM PERSON.PERSON AS P
+JOIN HUMANRESOURCES.EMPLOYEE AS E
+ON P.BUSINESSENTITYID = E.BUSINESSENTITYID
+WHERE DATEPART(YEAR, E.BIRTHDATE) > '1990';
+
+
+
+
