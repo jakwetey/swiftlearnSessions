@@ -691,6 +691,10 @@ ORDER BY WEEK_DAY;
 --EXCEPT used to perfom set difference; so it will return distinct rows that appear in 
       ---the first result data set that are not in the second result data 
 
+--- THINGS TO REMEMBER
+-- the number of selcted columns must be the same 
+-- their data types must be the same 
+
 --UNION
 --RETRIEVE  FIRSTNAMES THAT ARE BOTH EMPLOYEES AND CUSTOMERS WITHOUT  DUPS
 SELECT  DISTINCT  FIRSTNAME
