@@ -840,7 +840,7 @@ FROM PRODUCTION.PRODUCTS;
 --CORRELATED SUBQUERY
 ----the evalution of the inner depends on the outer query
 
-SYNTAX
+---SYNTAX
 --SELECT COLUMN1, COLUMN2, COLUMN3...
 --FROM TABLENAME
 --WHERE COLUMN  <<IN, =,!=, >,...>> (SELECT COLUMN	
@@ -1003,12 +1003,180 @@ RETURNS MONEY
 SELECT dbo.FN_PROFITS (200, 52)
 
 SELECT PRODUCTID, NAME, PRODUCTNUMBER,LISTPRICE,STANDARDCOST, 
-	dbo.FN_PROFITS (LISTPRICE, STANDARDCOST)
+	   dbo.FN_PROFITS (LISTPRICE, STANDARDCOST)
 FROM PRODUCTION.PRODUCT
 
 --DROP FUNCTION dbo.FN_PROFITS;
 
 SELECT ORDERID, PRODUCTID, UNITPRICE, DISCOUNT,
-	ADVENTUREWORKS.DBO.FN_PROFITS (UNITPRICE, DISCOUNT)PRICE
+		 ADVENTUREWORKS.DBO.FN_PROFITS (UNITPRICE, DISCOUNT)PRICE
 FROM TSQL2012.SALES.ORDERDETAILS
 
+--STORED PROCEDURE
+---- ITS A PRECOMPILED SQL STATEMENT THAT IS RUN REPEATEDLY.
+----SYNTAX
+--CREATE PROCEDURE SPNAME (@PARAMETER DATATYPE)
+--AS
+--	BEGIN
+--		SQL STATEMENT
+--	END;
+
+CREATE OR ALTER PROCEDURE SP_PRODUCTS
+AS
+	BEGIN
+		SELECT NAME, LISTPRICE
+		FROM PRODUCTION.PRODUCT
+		ORDER BY NAME
+	END;
+
+--CALLING PROCEDURE
+EXECUTE SP_PRODUCTS;
+
+---MODIFYING PROCEDURE TO ACCEPT INPUT VALUES
+CREATE OR ALTER PROCEDURE SP_PRODUCTS (@LISTPRICE MONEY)
+AS
+	BEGIN
+		SELECT NAME, LISTPRICE
+		FROM PRODUCTION.PRODUCT
+		WHERE LISTPRICE >= @LISTPRICE
+		ORDER BY NAME
+	END;
+
+--CALLING PROCEDURE
+EXECUTE SP_PRODUCTS 1650.65
+
+-- MODIFYING PROCEDURE  TO ACCEPT MULTIPLE INPUT VALUES
+---MODIFYING PROCEDURE TO ACCEPT INPUT VALUES
+CREATE OR ALTER PROCEDURE SP_PRODUCTS (@MINPRICE MONEY, @MAXPRICE MONEY )
+AS
+	BEGIN
+		SELECT NAME, LISTPRICE
+		FROM PRODUCTION.PRODUCT
+		WHERE LISTPRICE BETWEEN @MINPRICE AND @MAXPRICE
+		ORDER BY NAME
+	END;
+
+EXECUTE SP_PRODUCTS 1000, 2800
+
+---CREATING PROCEDURE TO CREATE A NEW TABLE
+CREATE OR ALTER PROCEDURE CreateService 
+        @TableName VARCHAR(100),
+        @Column1Name VARCHAR(50),
+        @Column1DataType VARCHAR(50),
+        @Column1Nullable VARCHAR(50),
+		@Column2Name VARCHAR(50),
+		@Column2DataType VARCHAR(50),
+		@Column2Nullable VARCHAR(50),
+		@Column3Name VARCHAR(50),
+		@Column3DataType VARCHAR(30),
+		@Column3Nullable VARCHAR(30),
+		@Column4Name VARCHAR(30),
+		@Column4DataType VARCHAR(50),
+		@Column4Nullable VARCHAR(50),
+		@Column5Name VARCHAR(50),
+		@Column5DataType VARCHAR(50),
+		@Column5Nullable VARCHAR(50),
+		@Column6Name VARCHAR(50),
+		@Column6DataType VARCHAR(50),
+		@Column6Nullable VARCHAR(50),
+		@Column7Name VARCHAR(50),
+		@Column7DataType VARCHAR(50),
+		@Column7Nullable VARCHAR(50),
+		@Column8Name VARCHAR(50),
+		@Column8DataType VARCHAR(50),
+		@Column8Nullable VARCHAR(50),
+		@Column9Name VARCHAR(50),
+		@Column9DataType  VARCHAR(50),
+		@Column9Nullable VARCHAR(50),
+		@Column10Name VARCHAR(50),
+		@Column10DataType VARCHAR(50),
+		@Column10Nullable VARCHAR(50)
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	DECLARE @SQLString NVARCHAR(MAX)
+
+   SET @SQLString = 'CREATE TABLE '+@TableName +
+    '( '
+	+@Column1Name+' '+@Column1DataType +' '+@Column1Nullable
+	+', '+@Column2Name+' '+@Column2DataType +' '+@Column2Nullable
+	+', '+@Column3Name+' '+@Column3DataType +' '+@Column3Nullable
+	+','+@Column4Name+' '+@Column4DataType +' '+@Column4Nullable
+	+', '+@Column5Name+' '+@Column5DataType +' '+@Column5Nullable
+	+', '+@Column6Name+' '+@Column6DataType +' '+@Column6Nullable
+	+', '+@Column7Name+' '+@Column7DataType +' '+@Column7Nullable
+	+', '+@Column8Name+' '+@Column8DataType +' '+@Column8Nullable
+	+', '+@Column9Name+' '+@Column9DataType +' '+@Column9Nullable
+	+', '+@Column10Name+' '+@Column10DataType +' '+@Column10Nullable
+	+')' 
+
+   EXEC(@SQLString)
+END
+GO
+
+--can execute procedure like   
+EXEC CreateService 
+'NewService01', 
+'RUID', 'VARCHAR(10)', 'NOT NULL',
+'DeYnOSPhIN', 'VARCHAR(20)', 'NULL',
+'DeLiAp' , 'VARCHAR(20)', 'NULL',	
+'DeLiDe'	, 'VARCHAR(20)', 'NULL',	
+'DeYnOSPhON' , 'VARCHAR(20)', 'NULL',	
+'CoYnOSPhIN'	, 'VARCHAR(20)', 'NULL',	
+'CoAmtOSPhIN'	, 'VARCHAR(20)', 'NULL',
+'CoYnOSPhON'	, 'VARCHAR(20)', 'NULL',
+'CoAmtOSPhON'	, 'VARCHAR(20)', 'NULL',	
+'CopYnOSPhIN'	, 'VARCHAR(20)', 'NULL';
+
+SELECT * FROM NEWSERVICE01
+
+--CREATING A STORED PROCEDURE TO ADD A NEW COLUMN TO A TABLE
+CREATE OR ALTER PROCEDURE SP_AddNewColumn 
+    @TableName VARCHAR(100),
+    @Column1Name VARCHAR(50),
+    @Column1DataType VARCHAR(50),
+    @Column1Nullable VARCHAR(50)
+
+AS
+  BEGIN
+
+     SET NOCOUNT ON;
+
+	 DECLARE @SQLString NVARCHAR(MAX)
+
+	 SET @SQLString = 'ALTER TABLE' +' '+@TableName + ' ' + 
+	 'ADD' +' '+ @Column1Name+' '+@Column1DataType +' '+@Column1Nullable
+
+	EXEC(@SQLString)
+  END
+
+--- can execute stored procedure like this 
+Exec SP_AddNewColumn  'NewService01', 'NewColumn1', 'VARCHAR(100)', 'NULL'
+
+
+---IF ELSE FUNCTION
+CREATE OR ALTER FUNCTION EVENODD(@INPUTNUMBER INT)
+RETURNS VARCHAR(10)
+AS
+	BEGIN
+		DECLARE @OUTPUT VARCHAR(10);
+			BEGIN
+				IF @INPUTNUMBER % 2 = 0
+				SET @OUTPUT = 'EVEN'
+				ELSE SET @OUTPUT = 'ODD'
+			END;
+			RETURN @OUTPUT;
+	END;
+
+--USING IF ELSE FUNCTION
+SELECT DBO.EVENODD(2) AS '2',
+		DBO.EVENODD(7) AS '7'
+
+SELECT DISTINCT ORDERDATE,CUSTID AS INPUTNUMBER, 
+		DBO.EVENODD(CUSTID) AS NUMBERTYPE
+FROM SALES.ORDERS;
