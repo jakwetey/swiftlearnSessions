@@ -1,8 +1,9 @@
---DDL - data definition Language
---CREATE
---ALTER
---DROP 
---TRUNCATE 
+-------01/17/2023------
+-----DDL - Data Definition Language
+--CREATE - Used to create a new database object such as a table, view, index, or procedure
+--ALTER - Used to modify an existing database object
+--DROP - Used to delete an existing database object
+--TRUNCATE - Used to remove all data from a table, but keep the table structure
 
 --SYNTAX
 --CREATE DATABASE DATABASE_NAME
@@ -21,12 +22,12 @@ CREATE DATABASE HOSPITAL_DB;
 --BOOLEAN 
 
 ----SQL CONSTRAINTS
---NIT NULL 
---PRIMARY KEY 
---FOREIGN KEY
---UNIQUE CONSTRAINT
---CHECK CONSTRAINT
---DEFAULT CONSTRAINT 
+--NOT NULL - Ensures that a column cannot have a null value
+--PRIMARY KEY - Uniquely identifies each row in a table and cannot have null values.
+--FOREIGN KEY - Enforces a link OR relationship between the data in two tables
+--UNIQUE - Ensures that all values in a column are distinct
+--CHECK - Ensures that the value in a column meets a specific condition
+--DEFAULT - Provides a default value for a column when no value is specified 
 
 
 --PATIENTS
